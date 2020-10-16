@@ -3,14 +3,17 @@ import { authRouter } from "./routes/auth";
 import * as mongoose from "mongoose";
 import * as dotenv from "dotenv";
 import { cardRouter } from "./routes/Card";
+import * as cors from "cors";
 
 dotenv.config();
 
 // global variables
 const app = express();
-const port = 3000;
+const port = 4000;
 const url = `http://localhost:${port}`;
 const connectionSetting = { useUnifiedTopology: true, useNewUrlParser: true };
+
+app.use(cors());
 
 // database connection
 mongoose.connect(process.env.DB_CONNECT, connectionSetting, (error) => {
