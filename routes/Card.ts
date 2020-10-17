@@ -9,7 +9,7 @@ export const cardRouter = Router();
 cardRouter.get("/", verifyToken, async (req: UserData, res) => {
   const getCardsByUserId = await Card.find({ userId: req.user._id });
   if (!getCardsByUserId) {
-    res.status(404).send("data not found");
+    res.status(404).send({ message: "data not found" });
   }
   res.send(getCardsByUserId);
 });
@@ -24,6 +24,16 @@ cardRouter.get("/count", verifyToken, async (req: UserData, res) => {
   const box4 = await Card.count({ userId: req.user._id, box_number: 4 });
   const box5 = await Card.count({ userId: req.user._id, box_number: 5 });
   res.send({ box1, box2, box3, box4, box5 });
+});
+
+cardRouter.get("/:id", verifyToken, async (req: UserData, res) => {
+  const getCardsByBoxNumber = await Card.findOne({
+    box_number: Number(req.params.id),
+  });
+  if (!getCardsByBoxNumber) {
+    res.status(404).send({ message: "data not found" });
+  }
+  res.send(getCardsByBoxNumber);
 });
 
 cardRouter.post("/", verifyToken, async (req: UserData, res) => {
