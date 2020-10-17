@@ -29,6 +29,7 @@ cardRouter.get("/count", verifyToken, async (req: UserData, res) => {
 cardRouter.get("/:id", verifyToken, async (req: UserData, res) => {
   const getCardsByBoxNumber = await Card.findOne({
     box_number: Number(req.params.id),
+    userId:req.user._id,
   });
   if (!getCardsByBoxNumber) {
     res.status(404).send({ message: "data not found" });
