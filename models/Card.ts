@@ -30,7 +30,7 @@ const Card: Schema<ICard> = new Schema({
   box_number: {
     type: Number,
     required: true,
-    max: 5,
+    max: 6,
     min: 1,
   },
 });
