@@ -6,48 +6,36 @@ import { verifyToken } from "./verifyToken";
 
 export const cardRouter = Router();
 
+//get /api/cards
 cardRouter.get("/", verifyToken, async (req: UserData, res) => {
-  console.log(req.user);
   const getCardsByUserId = await Card.find({ userId: req.user._id });
   if (!getCardsByUserId) {
-    res.status(404).send({ message: "data not found" });
+    return res.status(404).send({ message: "data not found" });
   }
-  res.send(getCardsByUserId);
+  return res.send(getCardsByUserId);
+});
+
+cardRouter.get("/history", verifyToken, async (req: UserData, res) => {
+  const getCardsByUserId = await Card.find({ userId: req.user._id, box_number: 6 });
+  if (!getCardsByUserId) {
+    return res.status(404).send({ message: "data not found" });
+  }
+  return res.send(getCardsByUserId);
 });
 
 cardRouter.get("/count", verifyToken, async (req: UserData, res) => {
-  const box1 = await Card.countDocuments(
-    { userId: req.user._id, box_number: 1 },
-    (err) => console.log(err)
-  );
-  const box2 = await Card.countDocuments({
-    userId: req.user._id,
-    box_number: 2,
-  });
-  const box3 = await Card.countDocuments({
-    userId: req.user._id,
-    box_number: 3,
-  });
-  const box4 = await Card.countDocuments({
-    userId: req.user._id,
-    box_number: 4,
-  });
-  const box5 = await Card.countDocuments({
-    userId: req.user._id,
-    box_number: 5,
-  });
-  res.send({ box1, box2, box3, box4, box5 });
+  await getCount(req, res);
 });
 
 cardRouter.get("/:id", verifyToken, async (req: UserData, res) => {
-  const getCardsByBoxNumber = await Card.findOne({
+  const getCardByBoxNumber = await Card.findOne({
     box_number: Number(req.params.id),
     userId: req.user._id,
   });
-  if (!getCardsByBoxNumber) {
-    res.status(404).send({ message: "data not found" });
+  if (!getCardByBoxNumber) {
+    return res.status(404).send({ message: "data not found" });
   }
-  res.send(getCardsByBoxNumber);
+  return res.send(getCardByBoxNumber);
 });
 
 cardRouter.post("/", verifyToken, async (req: UserData, res) => {
@@ -61,7 +49,7 @@ cardRouter.post("/", verifyToken, async (req: UserData, res) => {
 
   try {
     const savedCard = await card.save();
-    res.send(savedCard);
+    return res.send(savedCard);
   } catch (error) {
     res.status(400).send(error);
     throw error;
@@ -79,22 +67,45 @@ cardRouter.put("/:id", verifyToken, async (req: UserData, res) => {
     return res.status(404).send({ message: "card not found" });
   }
 
-  if (card.box_number < 6) {
+  if (card.box_number < 7) {
     try {
       const newCard = new Card({
         front: card.front,
         back: card.back,
         userId: req.user._id,
         box_number:
-          req.query.success === "1" ? card.box_number + 1 : card.box_number,
+          req.query.success === "1" ? card.box_number + 1 : req.query.success === "3" ? 1 : card.box_number,
       });
       await card.remove();
       await newCard.save();
-      res.send({ message: "The operation was carried out successfully" });
+      return res.send({ message: "The operation was carried out successfully" });
     } catch (error) {
-      console.log(error);
       res.status(400).send(error);
       throw error;
     }
   }
 });
+
+async function getCount(req: UserData, res) {
+  const box1 = await Card.countDocuments(
+    { userId: req.user._id, box_number: 1 },
+  );
+  const box2 = await Card.countDocuments({
+    userId: req.user._id,
+    box_number: 2,
+  });
+  const box3 = await Card.countDocuments({
+    userId: req.user._id,
+    box_number: 3,
+  });
+  const box4 = await Card.countDocuments({
+    userId: req.user._id,
+    box_number: 4,
+  });
+  const box5 = await Card.countDocuments({
+    userId: req.user._id,
+    box_number: 5,
+  });
+  return res.send({ box1, box2, box3, box4, box5 });
+}
+
