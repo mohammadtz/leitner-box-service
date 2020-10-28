@@ -16,7 +16,10 @@ cardRouter.get("/", verifyToken, async (req: UserData, res) => {
 });
 
 cardRouter.get("/history", verifyToken, async (req: UserData, res) => {
-  const getCardsByUserId = await Card.find({ userId: req.user._id, box_number: 6 });
+  const getCardsByUserId = await Card.find({
+    userId: req.user._id,
+    box_number: 6,
+  });
   if (!getCardsByUserId) {
     return res.status(404).send({ message: "data not found" });
   }
@@ -24,7 +27,8 @@ cardRouter.get("/history", verifyToken, async (req: UserData, res) => {
 });
 
 cardRouter.get("/count", verifyToken, async (req: UserData, res) => {
-  await getCount(req, res);
+  const result = await getCount(req.user._id);
+  res.send(result);
 });
 
 cardRouter.get("/:id", verifyToken, async (req: UserData, res) => {
@@ -58,11 +62,8 @@ cardRouter.post("/", verifyToken, async (req: UserData, res) => {
 
 cardRouter.put("/:id", verifyToken, async (req: UserData, res) => {
   // cardValidation(req, res);
-
-  if (!req.query.success) {
-    return res.status(400).send({ message: "success query params not found" });
-  }
   const card = await Card.findById(req.params.id);
+
   if (!card) {
     return res.status(404).send({ message: "card not found" });
   }
@@ -74,11 +75,26 @@ cardRouter.put("/:id", verifyToken, async (req: UserData, res) => {
         back: card.back,
         userId: req.user._id,
         box_number:
-          req.query.success === "1" ? card.box_number + 1 : req.query.success === "3" ? 1 : card.box_number,
+          card.box_number === 6
+            ? 1
+            : req.query.answer === card.back
+            ? card.box_number + 1
+            : card.box_number,
       });
       await card.remove();
       await newCard.save();
-      return res.send({ message: "The operation was carried out successfully" });
+      if (req.query.answer) {
+        if (req.query.answer === card.back) {
+          return res.send({
+            code: 1,
+            message: "the answer is correct",
+          });
+        }
+        return res.status(400).send({
+          code: 2,
+          message: "the answer incorrect",
+        });
+      }
     } catch (error) {
       res.status(400).send(error);
       throw error;
@@ -86,26 +102,26 @@ cardRouter.put("/:id", verifyToken, async (req: UserData, res) => {
   }
 });
 
-async function getCount(req: UserData, res) {
-  const box1 = await Card.countDocuments(
-    { userId: req.user._id, box_number: 1 },
-  );
+export async function getCount(useId) {
+  const box1 = await Card.countDocuments({
+    userId: useId,
+    box_number: 1,
+  });
   const box2 = await Card.countDocuments({
-    userId: req.user._id,
+    userId: useId,
     box_number: 2,
   });
   const box3 = await Card.countDocuments({
-    userId: req.user._id,
+    userId: useId,
     box_number: 3,
   });
   const box4 = await Card.countDocuments({
-    userId: req.user._id,
+    userId: useId,
     box_number: 4,
   });
   const box5 = await Card.countDocuments({
-    userId: req.user._id,
+    userId: useId,
     box_number: 5,
   });
-  return res.send({ box1, box2, box3, box4, box5 });
+  return { box1, box2, box3, box4, box5 };
 }
-

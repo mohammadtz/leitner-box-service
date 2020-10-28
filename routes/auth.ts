@@ -3,13 +3,13 @@ import { Router } from "express";
 import { sign } from "jsonwebtoken";
 import User from "../models/User";
 import { loginValidation, registerValidation } from "../validation";
+import { getCount } from "./Card";
 
 export const authRouter = Router();
 
 authRouter.post("/register", async (req, res) => {
   registerValidation(req, res);
   try {
-
     // check email, username and mobile not in the database
     const emailExist = await User.findOne({ email: req.body.email });
     if (emailExist)
@@ -57,10 +57,13 @@ authRouter.post("/login", async (req, res) => {
   const validPass = await compare(req.body.password, user.password);
   if (!validPass) return res.status(400).send({ message: "Invalid Password" });
 
+  const count = await getCount(user._id);
+
   // create and assign token
   const token = sign({ _id: user._id }, process.env.TOKEN_SECRET);
   return res.header("auth-token", token).send({
     token,
     user: { _id: user._id, user_name: user.user_name, email: user.email },
+    count: count,
   });
 });
