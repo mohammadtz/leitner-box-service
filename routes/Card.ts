@@ -10,7 +10,7 @@ export const cardRouter = Router();
 cardRouter.get("/", verifyToken, async (req: UserData, res) => {
   const getCardsByUserId = await Card.find({ userId: req.user._id });
   if (!getCardsByUserId) {
-    return res.status(404).send({ message: "data not found" });
+    return res.status(404).send({ message: "داده یافت نشد" });
   }
   return res.send(getCardsByUserId);
 });
@@ -21,7 +21,7 @@ cardRouter.get("/history", verifyToken, async (req: UserData, res) => {
     box_number: 6,
   });
   if (!getCardsByUserId) {
-    return res.status(404).send({ message: "data not found" });
+    return res.status(404).send({ message: "داده یافت نشد" });
   }
   return res.send(getCardsByUserId);
 });
@@ -37,7 +37,7 @@ cardRouter.get("/:id", verifyToken, async (req: UserData, res) => {
     userId: req.user._id,
   });
   if (!getCardByBoxNumber) {
-    return res.status(404).send({ message: "data not found" });
+    return res.status(404).send({ message: "داده یافت نشد" });
   }
   return res.send(getCardByBoxNumber);
 });
@@ -65,7 +65,7 @@ cardRouter.put("/:id", verifyToken, async (req: UserData, res) => {
   const card = await Card.findById(req.params.id);
 
   if (!card) {
-    return res.status(404).send({ message: "card not found" });
+    return res.status(404).send({ message: "کارت یافت نشد" });
   }
 
   if (card.box_number < 7) {
@@ -91,11 +91,11 @@ cardRouter.put("/:id", verifyToken, async (req: UserData, res) => {
         if (req.query.answer === card.back) {
           return res.send({
             code: 1,
-            message: "the answer is correct",
+            message: "جواب وارد شده صیح است",
           });
         }
         return res.status(400).send({
-          message: "the answer incorrect",
+          message: "جواب وارد شده اشتباه است",
           code: 2,
         });
       }
@@ -109,7 +109,7 @@ cardRouter.put("/:id", verifyToken, async (req: UserData, res) => {
 cardRouter.delete("/:id", verifyToken, async (req: UserData, res) => {
   const card = await Card.findById(req.params.id);
   if (!card) {
-    return res.status(404).send("card not found");
+    return res.status(404).send("کارت یافت نشد");
   }
   try {
     await Card.deleteOne(card);
