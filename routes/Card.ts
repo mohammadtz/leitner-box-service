@@ -70,17 +70,21 @@ cardRouter.put("/:id", verifyToken, async (req: UserData, res) => {
 
   if (card.box_number < 7) {
     try {
+      const boxNumberRender = () => {
+        return card.box_number === 6
+          ? 1
+          : req.query.answer === card.back
+          ? card.box_number + 1
+          : 1;
+      };
+
       const newCard = new Card({
         front: card.front,
         back: card.back,
         userId: req.user._id,
-        box_number:
-          card.box_number === 6
-            ? 1
-            : req.query.answer === card.back
-            ? card.box_number + 1
-            : card.box_number,
+        box_number: boxNumberRender(),
       });
+
       await card.remove();
       await newCard.save();
       if (req.query.answer) {
@@ -91,8 +95,8 @@ cardRouter.put("/:id", verifyToken, async (req: UserData, res) => {
           });
         }
         return res.status(400).send({
-          code: 2,
           message: "the answer incorrect",
+          code: 2,
         });
       }
     } catch (error) {
@@ -100,6 +104,16 @@ cardRouter.put("/:id", verifyToken, async (req: UserData, res) => {
       throw error;
     }
   }
+});
+
+cardRouter.delete("/:id", verifyToken, async (req: UserData, res) => {
+  const card = await Card.findById(req.params.id);
+  if (!card) {
+    return res.status(404).send("card not found");
+  }
+  try {
+    await Card.deleteOne(card);
+  } catch (error) {}
 });
 
 export async function getCount(useId) {

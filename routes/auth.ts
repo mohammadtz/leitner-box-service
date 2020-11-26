@@ -35,7 +35,7 @@ authRouter.post("/register", async (req, res) => {
       mobile: req.body.mobile,
     });
 
-    const savedUser = await user.save();
+    await user.save();
     res.send({ user: user._id });
   } catch (error) {
     res.status(400).send(error);
