@@ -30,7 +30,7 @@ app.use(`/api/cards`, cardRouter);
 
 // userType
 export interface UserData extends express.Request {
-  user: {
+  user?: {
     _id: string;
   };
 }

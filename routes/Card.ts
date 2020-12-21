@@ -31,6 +31,10 @@ cardRouter.get("/count", verifyToken, async (req: UserData, res) => {
   res.send(result);
 });
 
+cardRouter.get("/grouping", (req, res) => {
+  Grouping(req.query.groupby).then((result) => res.send(result));
+});
+
 cardRouter.get("/:id", verifyToken, async (req: UserData, res) => {
   const getCardByBoxNumber = await Card.findOne({
     box_number: Number(req.params.id),
@@ -41,6 +45,26 @@ cardRouter.get("/:id", verifyToken, async (req: UserData, res) => {
   }
   return res.send(getCardByBoxNumber);
 });
+
+async function Grouping(groupby) {
+  const grouping = await Card.aggregate([
+    {
+      $group: {
+        _id: `$${groupby}`,
+        entries: {
+          $push: {
+            userId: "$userId",
+            front: "$front",
+            back: "$back",
+            box_number: "$box_number",
+            date: "$date",
+          },
+        },
+      },
+    },
+  ]);
+  return grouping;
+}
 
 cardRouter.post("/", verifyToken, async (req: UserData, res) => {
   cardValidation(req, res);
@@ -61,8 +85,8 @@ cardRouter.post("/", verifyToken, async (req: UserData, res) => {
 });
 
 cardRouter.put("/:id", verifyToken, async (req: UserData, res) => {
-  // cardValidation(req, res);
   const card = await Card.findById(req.params.id);
+  const back = card.back.split(",");
 
   if (!card) {
     return res.status(404).send({ message: "کارت یافت نشد" });
@@ -73,7 +97,7 @@ cardRouter.put("/:id", verifyToken, async (req: UserData, res) => {
       const boxNumberRender = () => {
         return card.box_number === 6
           ? 1
-          : req.query.answer === card.back
+          : back.includes(req.query.answer.toString())
           ? card.box_number + 1
           : 1;
       };
@@ -88,7 +112,7 @@ cardRouter.put("/:id", verifyToken, async (req: UserData, res) => {
       await card.remove();
       await newCard.save();
       if (req.query.answer) {
-        if (req.query.answer === card.back) {
+        if (back.includes(req.query.answer.toString())) {
           return res.send({
             code: 1,
             message: "جواب وارد شده صیح است",

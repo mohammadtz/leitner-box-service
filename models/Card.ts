@@ -8,7 +8,7 @@ export interface ICard extends Document {
   box_number: number;
 }
 
-const Card: Schema<ICard> = new Schema({
+const Card = new Schema<ICard>({
   front: {
     type: String,
     required: true,
