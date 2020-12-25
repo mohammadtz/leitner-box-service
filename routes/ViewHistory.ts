@@ -10,7 +10,7 @@ export const historyRouter = Router();
 //get /api/history
 historyRouter.get("/", verifyToken, async (req: UserData, res) => {
   return await Card.aggregate([
-    // { $match: { userId: Types.ObjectId(req.user._id) } },
+    { $match: { userId: Types.ObjectId(req.user._id) } },
     {
       $lookup: {
         from: "viewhistories",
