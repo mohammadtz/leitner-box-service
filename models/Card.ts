@@ -1,14 +1,17 @@
 import { Document, model, Schema } from "mongoose";
+import { IUser } from "./User";
 
 export interface ICard extends Document {
+  uniqueId: string;
   front: string;
   back: string;
   date: Date;
-  userId: string;
+  userId: IUser["_id"];
   box_number: number;
 }
 
 const Card = new Schema<ICard>({
+  uniqueId: { type: Schema.Types.String, required: true },
   front: {
     type: String,
     required: true,
@@ -24,7 +27,7 @@ const Card = new Schema<ICard>({
     default: Date.now,
   },
   userId: {
-    type: String,
+    type: Schema.Types.ObjectId,
     required: true,
   },
   box_number: {
